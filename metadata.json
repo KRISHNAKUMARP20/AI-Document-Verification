@@ -1,0 +1,6 @@
+{
+  "name": "AI Document Verification System",
+  "description": "Enterprise-grade AI document verification platform with OCR extraction, cryptographic hash integrity, tamper detection, QR validation, and certificate issuance.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
