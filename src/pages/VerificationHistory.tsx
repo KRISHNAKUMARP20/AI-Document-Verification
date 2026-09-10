@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye } from 'lucide-react';
+import { Eye, FileText } from 'lucide-react';
 import { DocumentRecord } from '../types/Document';
 
 interface VerificationHistoryProps {
@@ -9,59 +9,10 @@ interface VerificationHistoryProps {
 }
 
 export const VerificationHistoryPage: React.FC<VerificationHistoryProps> = ({ 
-  documents, 
+  documents = [], 
   onSelectDoc,
   onViewRecord 
 }) => {
-  // 5 Rows matching Screen 10
-  const historyItems = [
-    {
-      id: 'doc-001',
-      index: 1,
-      name: 'certificate.jpg',
-      type: 'Certificate',
-      date: '14 Jan 2025',
-      status: 'Verified',
-      statusVariant: 'success'
-    },
-    {
-      id: 'doc-002',
-      index: 2,
-      name: 'marksheet.pdf',
-      type: 'Marksheet',
-      date: '10 Jan 2025',
-      status: 'Verified',
-      statusVariant: 'success'
-    },
-    {
-      id: 'doc-003',
-      index: 3,
-      name: 'id_card.jpg',
-      type: 'ID Card',
-      date: '06 Jan 2025',
-      status: 'Suspicious',
-      statusVariant: 'warning'
-    },
-    {
-      id: 'doc-004',
-      index: 4,
-      name: 'degree.pdf',
-      type: 'Degree',
-      date: '01 Jan 2025',
-      status: 'Verified',
-      statusVariant: 'success'
-    },
-    {
-      id: 'doc-005',
-      index: 5,
-      name: 'sample.jpg',
-      type: 'Certificate',
-      date: '25 Dec 2024',
-      status: 'Invalid',
-      statusVariant: 'danger'
-    }
-  ];
-
   const handleAction = (item: any) => {
     if (onSelectDoc) {
       onSelectDoc(item.id);
@@ -97,33 +48,40 @@ export const VerificationHistoryPage: React.FC<VerificationHistoryProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {historyItems.map((item) => (
-                <tr key={item.index} className="hover:bg-slate-850/40 transition-colors">
-                  <td className="py-3.5 px-4 text-slate-400 font-mono">{item.index}</td>
-                  <td className="py-3.5 px-4 font-semibold text-white">{item.name}</td>
-                  <td className="py-3.5 px-4 text-slate-300">{item.type}</td>
-                  <td className="py-3.5 px-4 text-slate-400 font-mono text-[11px]">{item.date}</td>
+              {documents.map((doc, index) => (
+                <tr key={doc.id} className="hover:bg-slate-850/40 transition-colors">
+                  <td className="py-3.5 px-4 text-slate-400 font-mono">{index + 1}</td>
+                  <td className="py-3.5 px-4 font-semibold text-white">{doc.originalFilename || doc.title}</td>
+                  <td className="py-3.5 px-4 text-slate-300">{doc.documentType}</td>
+                  <td className="py-3.5 px-4 text-slate-400 font-mono text-[11px]">
+                    {new Date(doc.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </td>
                   <td className="py-3.5 px-4">
-                    {item.statusVariant === 'success' && (
+                    {doc.status === 'VERIFIED_VALID' && (
                       <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-semibold">
                         Verified
                       </span>
                     )}
-                    {item.statusVariant === 'warning' && (
+                    {doc.status === 'SUSPICIOUS_FLAGGED' && (
                       <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-semibold">
                         Suspicious
                       </span>
                     )}
-                    {item.statusVariant === 'danger' && (
+                    {doc.status === 'REJECTED_FRAUDULENT' && (
                       <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-semibold">
                         Invalid
+                      </span>
+                    )}
+                    {(doc.status === 'PENDING' || doc.status === 'PROCESSING') && (
+                      <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] font-semibold">
+                        Processing
                       </span>
                     )}
                   </td>
                   <td className="py-3.5 px-4 text-center">
                     <button
-                      id={`btn-view-history-${item.index}`}
-                      onClick={() => handleAction(item)}
+                      id={`btn-view-history-${index}`}
+                      onClick={() => handleAction(doc)}
                       className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-[11px] font-medium transition-colors cursor-pointer"
                     >
                       View
@@ -134,6 +92,12 @@ export const VerificationHistoryPage: React.FC<VerificationHistoryProps> = ({
             </tbody>
           </table>
         </div>
+        {documents.length === 0 && (
+          <div className="p-8 text-center space-y-2">
+            <FileText className="w-8 h-8 mx-auto text-slate-600" />
+            <p className="text-xs text-slate-400">You have not verified any documents yet.</p>
+          </div>
+        )}
       </div>
     </div>
   );

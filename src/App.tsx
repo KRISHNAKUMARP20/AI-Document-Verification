@@ -69,6 +69,21 @@ function MainAppContent() {
 
   const handleUploadAndVerify = async (uploadPayload: any) => {
     setActiveTab('processing');
+    try {
+      const newDoc = await documentService.uploadDocument(uploadPayload);
+      setDocuments(prev => [newDoc, ...prev]);
+      setSelectedDocId(newDoc.id);
+      
+      const result = await verificationService.runVerificationPipeline({
+        documentId: newDoc.id,
+        fileDataUrl: uploadPayload.fileDataUrl,
+        documentType: uploadPayload.documentType
+      });
+      setSelectedResult(result);
+    } catch (err) {
+      console.error('Upload or Verification failed:', err);
+      // Handle error state if needed
+    }
   };
 
   const handleLogout = () => {
@@ -76,20 +91,7 @@ function MainAppContent() {
     setActiveTab('logout-screen');
   };
 
-  const activeDoc = documents.find(d => d.id === selectedDocId) || documents[0] || {
-    id: 'doc-001',
-    userId: 'usr_krishna',
-    title: 'Certificate of Completion - Rohan Kumar',
-    documentType: 'CERTIFICATE',
-    originalFilename: 'certificate.jpg',
-    fileSizeBytes: 2516582,
-    mimeType: 'image/jpeg',
-    sha256Hash: 'a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8',
-    status: 'VERIFIED_VALID',
-    overallConfidenceScore: 98.4,
-    createdAt: '2025-01-14T10:34:00.000Z',
-    updatedAt: '2025-01-14T10:34:00.000Z'
-  };
+  const activeDoc = documents.find(d => d.id === selectedDocId) || documents[0] || null;
 
   // Determine current effective screen based on authentication
   const currentTab = !user
@@ -166,7 +168,6 @@ function MainAppContent() {
               <UploadDocumentPage
                 issuers={issuers}
                 onUploadAndVerify={handleUploadAndVerify}
-                onAnalyzeDirect={() => setActiveTab('processing')}
               />
             )}
 
@@ -179,7 +180,7 @@ function MainAppContent() {
             )}
 
             {/* Screen 6: Extracted Information */}
-            {currentTab === 'extracted-info' && (
+            {currentTab === 'extracted-info' && activeDoc && (
               <ExtractedInformationPage
                 document={activeDoc}
                 ocrData={selectedResult?.ocr || null}
@@ -188,7 +189,7 @@ function MainAppContent() {
             )}
 
             {/* Screen 7: Verification Checks */}
-            {currentTab === 'checks' && (
+            {currentTab === 'checks' && activeDoc && (
               <VerificationChecksPage
                 document={activeDoc}
                 checks={selectedResult?.checks || []}
@@ -198,7 +199,7 @@ function MainAppContent() {
             )}
 
             {/* Screen 8: Final Result */}
-            {currentTab === 'result' && (
+            {currentTab === 'result' && activeDoc && (
               <VerificationResultPage
                 document={activeDoc}
                 result={selectedResult || ({} as any)}
@@ -208,7 +209,7 @@ function MainAppContent() {
             )}
 
             {/* Screen 9: Detailed Analysis */}
-            {currentTab === 'detailed-analysis' && (
+            {currentTab === 'detailed-analysis' && activeDoc && (
               <DetailedAnalysisPage
                 document={activeDoc}
                 tamper={selectedResult?.tamper || null}
@@ -233,12 +234,14 @@ function MainAppContent() {
       )}
 
       {/* Screen 11: Download Report Modal */}
-      <DownloadReportModal
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
-        document={activeDoc}
-        result={selectedResult}
-      />
+      {activeDoc && (
+        <DownloadReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          document={activeDoc}
+          result={selectedResult}
+        />
+      )}
     </div>
   );
 }

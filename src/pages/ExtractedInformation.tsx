@@ -17,13 +17,30 @@ export const ExtractedInformationPage: React.FC<ExtractedInformationProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [details, setDetails] = useState({
-    name: ocrData?.fields?.find(f => f.fieldKey.toLowerCase().includes('name'))?.fieldValue || 'Rohan Kumar',
-    certificateId: ocrData?.fields?.find(f => f.fieldKey.toLowerCase().includes('id') || f.fieldKey.toLowerCase().includes('number'))?.fieldValue || 'CERT-2023-00125',
-    institution: 'ABC Institute of Technology',
-    course: 'Java Programming',
-    issueDate: '20 Aug 2023',
-    documentType: 'Certificate'
+    name: (ocrData?.extractedFields?.fullName as string) || (document?.title || 'Unknown Name'),
+    certificateId: (ocrData?.extractedFields?.documentNumber as string) || 'Pending...',
+    institution: (ocrData?.extractedFields?.issuingAuthority as string) || 'Pending...',
+    course: 'Document Verification', // Default as it's not extracted explicitly by AI
+    issueDate: (ocrData?.extractedFields?.dateOfIssue as string) || 'Pending...',
+    documentType: document?.documentType || 'Certificate'
   });
+
+  const pdfBlobUrl = React.useMemo(() => {
+    if (!document?.fileDataUrl?.startsWith('data:application/pdf')) return null;
+    try {
+      const base64 = document.fileDataUrl.split(',')[1];
+      const byteCharacters = atob(base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      return URL.createObjectURL(blob);
+    } catch (e) {
+      return null;
+    }
+  }, [document?.fileDataUrl]);
 
   return (
     <div id="extracted-information-screen" className="max-w-4xl mx-auto space-y-6">
@@ -40,15 +57,23 @@ export const ExtractedInformationPage: React.FC<ExtractedInformationProps> = ({
       {/* 2-Column Layout matching Screen 6 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         {/* Left: Certificate Preview Document */}
-        <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-[#0e172e] p-2">
-          <CertificateDocument
-            name={details.name}
-            course={details.course}
-            institution={details.institution}
-            certificateId={details.certificateId}
-            issueDate={details.issueDate}
-            compact={true}
-          />
+        <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-[#0e172e] p-2 flex items-center justify-center min-h-[300px]">
+          {document?.fileDataUrl ? (
+            document.fileDataUrl.startsWith('data:application/pdf') ? (
+              <iframe src={pdfBlobUrl || ''} title="PDF Preview" className="w-full h-[500px] rounded-xl bg-white border-0" />
+            ) : (
+              <img src={document.fileDataUrl} alt="Uploaded document" className="w-full h-auto rounded-xl object-contain max-h-[600px] bg-white" />
+            )
+          ) : (
+            <CertificateDocument
+              name={details.name}
+              course={details.course}
+              institution={details.institution}
+              certificateId={details.certificateId}
+              issueDate={details.issueDate}
+              compact={true}
+            />
+          )}
         </div>
 
         {/* Right: Extracted Details Card matching Screen 6 */}

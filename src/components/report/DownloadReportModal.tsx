@@ -135,7 +135,14 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({
         {/* Top Grid: Certificate Document Scan + Certificate Details matching Screen 11 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-xl overflow-hidden border border-slate-800 bg-[#080e1e] p-1.5 shadow-md">
-            <CertificateDocument compact={true} />
+            <CertificateDocument 
+              compact={true} 
+              name={(result?.ocr?.extractedFields?.fullName as string) || undefined}
+              certificateId={result?.certificate?.certificateNumber || (result?.ocr?.extractedFields?.documentNumber as string) || undefined}
+              institution={result?.certificate?.issuerAuthority || (result?.ocr?.extractedFields?.issuingAuthority as string) || undefined}
+              course={document?.documentType || 'Document'}
+              issueDate={(result?.ocr?.extractedFields?.dateOfIssue as string) || undefined}
+            />
           </div>
 
           <div className="p-4 rounded-xl bg-[#080e1e] border border-slate-800 space-y-2 text-xs">
@@ -145,31 +152,27 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({
             <div className="space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-slate-400">Name</span>
-                <span className="font-semibold text-white">Rohan Kumar</span>
+                <span className="font-semibold text-white">{(result?.ocr?.extractedFields?.fullName as string) || 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Certificate ID</span>
-                <span className="font-mono text-slate-200">CERT-2023-00125</span>
+                <span className="font-mono text-slate-200">{result?.certificate?.certificateNumber || (result?.ocr?.extractedFields?.documentNumber as string) || 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Institution</span>
-                <span className="text-slate-200">ABC Institute of Technology</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Course</span>
-                <span className="text-slate-200">Java Programming</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Issue Date</span>
-                <span className="text-slate-200">20 Aug 2023</span>
+                <span className="text-slate-200">{result?.certificate?.issuerAuthority || (result?.ocr?.extractedFields?.issuingAuthority as string) || 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Document Type</span>
-                <span className="text-slate-200">Certificate</span>
+                <span className="text-slate-200">{document?.documentType || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Issue Date</span>
+                <span className="text-slate-200">{(result?.ocr?.extractedFields?.dateOfIssue as string) || 'N/A'}</span>
               </div>
               <div className="flex justify-between pt-1 border-t border-slate-800">
                 <span className="text-slate-400">Verification ID</span>
-                <span className="font-mono text-emerald-400">#VR20250114001</span>
+                <span className="font-mono text-emerald-400">{result?.verificationLogId || 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -203,30 +206,30 @@ export const DownloadReportModal: React.FC<DownloadReportModalProps> = ({
             <div className="space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-slate-400">Classification</span>
-                <span className="text-slate-200">Certificate</span>
+                <span className="text-slate-200">{document?.documentType || 'Document'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">OCR Confidence</span>
-                <span className="font-mono text-emerald-400 font-semibold">98.4%</span>
+                <span className="font-mono text-emerald-400 font-semibold">{result?.ocr?.confidenceScore || 0}%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Template Similarity</span>
-                <span className="font-mono text-blue-400 font-semibold">94%</span>
+                <span className="text-slate-400">Trust Score</span>
+                <span className="font-mono text-blue-400 font-semibold">{result?.compositeTrustScore || 0}%</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Possible Manipulation</span>
-                <span className="text-emerald-400 font-semibold">Low</span>
+                <span className={`font-semibold ${result?.tamper?.isTampered ? 'text-red-400' : 'text-emerald-400'}`}>{result?.tamper?.isTampered ? 'High' : 'Low'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Suspicious Regions</span>
-                <span className="text-slate-200">None Detected</span>
+                <span className="text-slate-200">{result?.tamper?.tamperFlags?.length ? result.tamper.tamperFlags.join(', ') : 'None Detected'}</span>
               </div>
             </div>
 
-            <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 flex items-start gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div className={`p-2.5 rounded-lg border flex items-start gap-2 ${result?.tamper?.isTampered ? 'bg-red-950/40 border-red-500/30' : 'bg-emerald-950/40 border-emerald-500/30'}`}>
+              <ShieldCheck className={`w-4 h-4 shrink-0 mt-0.5 ${result?.tamper?.isTampered ? 'text-red-400' : 'text-emerald-400'}`} />
               <p className="text-[11px] text-slate-300">
-                <strong className="text-emerald-300">AI Assessment:</strong> No significant visual anomalies detected. The document appears to be genuine.
+                <strong className={result?.tamper?.isTampered ? 'text-red-300' : 'text-emerald-300'}>AI Assessment:</strong> {result?.summaryReport || 'No significant visual anomalies detected. The document appears to be genuine.'}
               </p>
             </div>
           </div>

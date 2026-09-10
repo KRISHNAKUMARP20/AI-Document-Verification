@@ -21,10 +21,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     async function initAuth() {
       try {
         const token = localStorage.getItem('aidoc_auth_token');
+        const localUserStr = localStorage.getItem('aidoc_user');
+        
         if (token) {
-          const currentUser = await authService.getCurrentUser();
-          if (currentUser) {
-            setUser(currentUser);
+          try {
+            const currentUser = await authService.getCurrentUser();
+            if (currentUser) {
+              localStorage.setItem('aidoc_user', JSON.stringify(currentUser));
+              setUser(currentUser);
+              return;
+            }
+          } catch (apiErr) {
+            console.warn('Backend session fetch failed, falling back to local cache.');
+          }
+          
+          // If backend failed or returned null (e.g. server restarted), use local cache
+          if (localUserStr) {
+            setUser(JSON.parse(localUserStr));
             return;
           }
         }
@@ -47,6 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const res = await authService.login(cleanEmail, cleanPass, loginType);
         if (res && res.user) {
+          localStorage.setItem('aidoc_user', JSON.stringify(res.user));
           setUser(res.user);
           return;
         }
@@ -73,6 +87,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             createdAt: '2025-01-01T00:00:00.000Z'
           };
           localStorage.setItem('aidoc_auth_token', 'admin_token_' + Date.now());
+          localStorage.setItem('aidoc_user', JSON.stringify(adminUser));
           setUser(adminUser);
           return;
         } else {
@@ -97,6 +112,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         createdAt: new Date().toISOString()
       };
       localStorage.setItem('aidoc_auth_token', 'demo_token_' + Date.now());
+      localStorage.setItem('aidoc_user', JSON.stringify(fallbackUser));
       setUser(fallbackUser);
     } finally {
       setIsLoading(false);
@@ -109,6 +125,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const res = await authService.register(data);
         if (res && res.user) {
+          localStorage.setItem('aidoc_user', JSON.stringify(res.user));
           setUser(res.user);
           return;
         }
@@ -126,6 +143,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         createdAt: new Date().toISOString()
       };
       localStorage.setItem('aidoc_auth_token', 'demo_token_' + Date.now());
+      localStorage.setItem('aidoc_user', JSON.stringify(newUser));
       setUser(newUser);
     } finally {
       setIsLoading(false);
@@ -134,6 +152,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     authService.logout();
+    localStorage.removeItem('aidoc_user');
     setUser(null);
   };
 
