@@ -80,9 +80,10 @@ function MainAppContent() {
         documentType: uploadPayload.documentType
       });
       setSelectedResult(result);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload or Verification failed:', err);
-      // Handle error state if needed
+      alert('Error processing document. It might be too large or the server restarted. Details: ' + (err.message || 'Unknown error'));
+      setActiveTab('dashboard');
     }
   };
 
