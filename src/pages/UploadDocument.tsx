@@ -15,8 +15,8 @@ export const UploadDocumentPage: React.FC<UploadDocumentPageProps> = ({
   onUploadAndVerify,
   onAnalyzeDirect
 }) => {
-  const [selectedFileName, setSelectedFileName] = useState<string>('certificate.jpg');
-  const [fileSizeStr, setFileSizeStr] = useState<string>('2.4 MB');
+  const [selectedFileName, setSelectedFileName] = useState<string>('');
+  const [fileSizeStr, setFileSizeStr] = useState<string>('');
   const [fileDataUrl, setFileDataUrl] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
