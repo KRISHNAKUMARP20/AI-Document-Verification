@@ -6,6 +6,7 @@ export const config = {
       sizeLimit: '4.5mb',
     },
   },
+  maxDuration: 60,
 };
 
 export default app;

@@ -3,7 +3,6 @@ import path from 'path';
 import crypto from 'crypto';
 import QRCode from 'qrcode';
 import { GoogleGenAI } from '@google/genai';
-import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -651,6 +650,7 @@ app.get('/api/verification/verify-qr/:token', (req, res) => {
 
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'
