@@ -276,7 +276,7 @@ app.post('/api/documents', (req, res) => {
 
   const newDoc: DocumentStore = {
     id: 'doc-' + Date.now(),
-    userId: currentUser.id,
+    userId: currentUser?.id || 'sys-user',
     issuerId: issuerId || 'iss-001',
     title: title || originalFilename || 'Submitted Document',
     documentType: documentType || 'PASSPORT',
